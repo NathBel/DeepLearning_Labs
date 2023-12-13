@@ -1,11 +1,11 @@
 import tensorflow as tf
 import numpy as np
 
-mnist = tf.keras.datasets.mnist
-(x_train, y_train), (x_test, y_test) = mnist.load_data()
+cifar10 = tf.keras.datasets.cifar10
+(x_train, y_train), (x_test, y_test) = cifar10.load_data()
 x_train, x_test = x_train / 255.0 , x_test / 255.0
 
-input_layer = tf.keras.layers.Input(name="input_layer", shape=(None, None, 1))
+input_layer = tf.keras.layers.Input(name="input_layer", shape=(None, None, 3))
 conv1 = input_layer
 
 # Save the input before the first block

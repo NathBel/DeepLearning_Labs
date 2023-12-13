@@ -5,7 +5,7 @@ mnist = tf.keras.datasets.mnist
 (x_train, y_train), (x_test, y_test) = mnist.load_data()
 x_train, x_test = x_train / 255.0 , x_test / 255.0
 
-input_layer = tf.keras.layers.Input(name="input_layer", shape=(28, 28, 1))
+input_layer = tf.keras.layers.Input(name="input_layer", shape=(None, None, 1))
 
 hidden_layer = tf.keras.layers.Conv2D(filters=128, kernel_size=(1, 1))(input_layer)
 hidden_layer = tf.keras.layers.Activation("relu")(hidden_layer)
@@ -24,12 +24,10 @@ hidden_layer = tf.keras.layers.Conv2D(filters=128, kernel_size=(7, 7), padding='
 hidden_layer = tf.keras.layers.Activation("relu")(hidden_layer)
 hidden_layer = tf.keras.layers.Dropout(0.2)(hidden_layer)
 
-hidden_layer = tf.keras.layers.Flatten()(hidden_layer)
 
+hidden_layer = tf.keras.layers.Conv2D(filters=10, kernel_size=(1, 1))(hidden_layer)
+hidden_layer = tf.keras.layers.GlobalAveragePooling2D()(hidden_layer)
 
-hidden_layer = tf.keras.layers.Activation("relu")(hidden_layer)
-hidden_layer = tf.keras.layers.Dropout(0.2)(hidden_layer)
-hidden_layer = tf.keras.layers.Dense(units=10)(hidden_layer)
 
 output_layer = tf.keras.layers.Activation("softmax", name="output_layer")(hidden_layer)
 model = tf.keras.models.Model(inputs=[input_layer], outputs=[output_layer])

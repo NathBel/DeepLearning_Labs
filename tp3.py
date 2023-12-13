@@ -19,33 +19,42 @@ conv1 = tf.keras.layers.Dropout(0.2)(conv1)
 
 # Save input before the second block
 input_to_block_2 = conv1
+conv2 = conv1
 
 # Second convolutional block
-conv2 = tf.keras.layers.Conv2D(filters=128, kernel_size=(7, 7), padding='same')(conv1)
-conv2 = tf.keras.layers.BatchNormalization()(conv2)
-conv2 = tf.keras.layers.Activation("relu")(conv2)
-conv2 = tf.keras.layers.Dropout(0.2)(conv2)
+for _ in range((7-1)//2):
+    conv2 = tf.keras.layers.Conv2D(filters=128, kernel_size=(3, 1), padding='same')(conv2)
+    conv2 = tf.keras.layers.Conv2D(filters=128, kernel_size=(1, 3), padding='same')(conv2)
+    conv2 = tf.keras.layers.BatchNormalization()(conv2)
+    conv2 = tf.keras.layers.Activation("relu")(conv2)
+    conv2 = tf.keras.layers.Dropout(0.2)(conv2)
 
 # Add the residual from the first block
 conv2 = conv2 + input_to_block
 
 # Save input before the third block
 input_to_block_3 = conv2
+conv3 = conv2
 
 # Third convolutional block
-conv3 = tf.keras.layers.Conv2D(filters=128, kernel_size=(7, 7), padding='same')(conv2)
-conv3 = tf.keras.layers.BatchNormalization()(conv3)
-conv3 = tf.keras.layers.Activation("relu")(conv3)
-conv3 = tf.keras.layers.Dropout(0.2)(conv3)
+for _ in range((7-1)//2):
+    conv3 = tf.keras.layers.Conv2D(filters=128, kernel_size=(3, 1), padding='same')(conv3)
+    conv3 = tf.keras.layers.Conv2D(filters=128, kernel_size=(1, 3), padding='same')(conv3)
+    conv3 = tf.keras.layers.BatchNormalization()(conv3)
+    conv3 = tf.keras.layers.Activation("relu")(conv3)
+    conv3 = tf.keras.layers.Dropout(0.2)(conv3)
 
 # Add the residual from the second block
 conv3 = conv3 + input_to_block_2
+conv4 = conv3
 
 # Fourth convolutional block
-conv4 = tf.keras.layers.Conv2D(filters=128, kernel_size=(7, 7), padding='same', activation="relu")(conv3)
-conv4 = tf.keras.layers.BatchNormalization()(conv4)
-conv4 = tf.keras.layers.Activation("relu")(conv4)
-conv4 = tf.keras.layers.Dropout(0.2)(conv4)
+for _ in range((7-1)//2):
+    conv4 = tf.keras.layers.Conv2D(filters=128, kernel_size=(3, 1), padding='same')(conv4)
+    conv4 = tf.keras.layers.Conv2D(filters=128, kernel_size=(1, 3), padding='same')(conv4)
+    conv4 = tf.keras.layers.BatchNormalization()(conv4)
+    conv4 = tf.keras.layers.Activation("relu")(conv4)
+    conv4 = tf.keras.layers.Dropout(0.2)(conv4)
 
 # Add the residual from the third block
 conv4 = conv4 + input_to_block_3

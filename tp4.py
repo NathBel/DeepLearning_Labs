@@ -36,6 +36,47 @@ class SequentialySeparatedConv2D(tf.keras.layers.Layer):
             self.layers.append(tf.keras.layers.Activation("relu"))
             self.layers.append(tf.keras.layers.Dropout(0.2))
 
+class EDSequentialySeparatedConv2D(tf.keras.layers.Layer):
+    def __init__(self, kernel_size, compression_value, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.kernel_size = kernel_size
+        self.compression_value = compression_value
+        
+    def call(self, inputs):
+        for layer in self.layers:
+            inputs = layer(inputs)
+        return inputs
+    
+    def get_config(self):
+        config = super().get_config()
+        config.update({
+            "kernel_size": self.kernel_size,
+            "compression_value": self.compression_value
+        })
+        return config
+    
+    def build(self, input_shape):
+        super().build(input_shape)
+        bs, w, h, c = input_shape
+        
+        self.layers = []
+        
+        # compression layer
+        self.layers.append(
+            tf.keras.layers.Conv2D(filters=self.compression_value, kernel_size=(1, 1), padding="same")
+        )
+        
+        self.layers.append(
+            SequentialySeparatedConv2D(kernel_size=self.kernel_size)
+        )
+        
+        # decompression layer
+        self.layers.append(
+            tf.keras.layers.Conv2D(filters=c, kernel_size=(1, 1), padding="same")
+        )
+        
+        
+
 
 cifar = tf.keras.datasets.cifar10
 (x_train, y_train), (x_test, y_test) = cifar.load_data()
@@ -45,33 +86,23 @@ input_layer = tf.keras.layers.Input(name="input_layer", shape=(None, None,3))
 
 # modifier le conv2D
 x = tf.keras.layers.Conv2D(kernel_size=(1,1), filters=128)(input_layer)
-#add 3 conv2D
 
 input_to_block = x
-x= tf.keras.layers.Conv2D(kernel_size=(1,1), filters=32 ,padding="same")(x)
+#Use the custom layer EDSequentialySeparatedConv2D
+x = EDSequentialySeparatedConv2D(kernel_size=7, compression_value=32)(x)
 
-#Use the custom layer instead of the 3 conv2D
-x = SequentialySeparatedConv2D(kernel_size=7)(x)
-
-x= tf.keras.layers.Conv2D(kernel_size=(1,1), filters=128 ,padding="same")(x)
 x += input_to_block
-
 input_to_block = x
-x = tf.keras.layers.Conv2D(kernel_size=(1,1), filters=32 ,padding="same")(x)
 
-#Use the custom layer instead of the 3 conv2D
-x = SequentialySeparatedConv2D(kernel_size=7)(x)
+#Use the custom layer 
+x = EDSequentialySeparatedConv2D(kernel_size=7, compression_value=32)(x)
 
-x= tf.keras.layers.Conv2D(kernel_size=(1,1), filters=128 ,padding="same")(x)
 x += input_to_block
-
 input_to_block = x
-x = tf.keras.layers.Conv2D(kernel_size=(1,1), filters=32 ,padding="same")(x)
 
-#Use the custom layer instead of the 3 conv2D
-x = SequentialySeparatedConv2D(kernel_size=7)(x)
+#Use the custom layer
+x = EDSequentialySeparatedConv2D(kernel_size=7, compression_value=32)(x)
 
-x= tf.keras.layers.Conv2D(kernel_size=(1,1), filters=128 ,padding="same")(x)
 x += input_to_block
 
 

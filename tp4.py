@@ -35,6 +35,7 @@ class SequentialySeparatedConv2D(tf.keras.layers.Layer):
             self.layers.append(tf.keras.layers.BatchNormalization())
             self.layers.append(tf.keras.layers.Activation("relu"))
             self.layers.append(tf.keras.layers.Dropout(0.2))
+    
 
 class EDSequentialySeparatedConv2D(tf.keras.layers.Layer):
     def __init__(self, kernel_size, compression_value, *args, **kwargs):
@@ -75,9 +76,33 @@ class EDSequentialySeparatedConv2D(tf.keras.layers.Layer):
             tf.keras.layers.Conv2D(filters=c, kernel_size=(1, 1), padding="same")
         )
         
+
+class ResidualEDSequentialyseparatedConv2D(tf.keras.layers.Layer):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+    def call(self, inputs):
+        input_to_block = inputs  # Save the input for residual connection
+        for layer in self.layers:
+            x = layer(inputs)
+            if isinstance(layer, EDSequentialySeparatedConv2D):
+                x += input_to_block  # Add residual connection
+                input_to_block = x  # Update input for next iteration
+            inputs = x
+        return inputs
+
+    def get_config(self):
+        config = super().get_config()
+        return config
+
+    def build(self, input_shape):
+        super().build(input_shape)
+        self.layers = []
         
-
-
+        input_to_block = input_shape
+        self.layers.append(EDSequentialySeparatedConv2D(kernel_size=7, compression_value=32))
+        
+    
 cifar = tf.keras.datasets.cifar10
 (x_train, y_train), (x_test, y_test) = cifar.load_data()
   
@@ -87,23 +112,11 @@ input_layer = tf.keras.layers.Input(name="input_layer", shape=(None, None,3))
 # modifier le conv2D
 x = tf.keras.layers.Conv2D(kernel_size=(1,1), filters=128)(input_layer)
 
-input_to_block = x
-#Use the custom layer EDSequentialySeparatedConv2D
-x = EDSequentialySeparatedConv2D(kernel_size=7, compression_value=32)(x)
+x = ResidualEDSequentialyseparatedConv2D()(x)
 
-x += input_to_block
-input_to_block = x
+x = ResidualEDSequentialyseparatedConv2D()(x)
 
-#Use the custom layer 
-x = EDSequentialySeparatedConv2D(kernel_size=7, compression_value=32)(x)
-
-x += input_to_block
-input_to_block = x
-
-#Use the custom layer
-x = EDSequentialySeparatedConv2D(kernel_size=7, compression_value=32)(x)
-
-x += input_to_block
+x = ResidualEDSequentialyseparatedConv2D()(x)
 
 
 hidden_layer = tf.keras.layers.Conv2D(kernel_size=(1,1), filters=10, padding="same")(x)

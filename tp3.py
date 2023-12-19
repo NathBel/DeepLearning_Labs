@@ -1,89 +1,79 @@
-import tensorflow as tf
 import numpy as np
+import tensorflow as tf
 
-cifar10 = tf.keras.datasets.cifar10
-(x_train, y_train), (x_test, y_test) = cifar10.load_data()
+
+cifar = tf.keras.datasets.cifar10
+(x_train, y_train), (x_test, y_test) = cifar.load_data()
+
+# Normaliser les valeurs des pixels entre 0 et 1
 x_train, x_test = x_train / 255.0 , x_test / 255.0
 
-input_layer = tf.keras.layers.Input(name="input_layer", shape=(None, None, 3))
-conv1 = input_layer
+# Création de la couche d'entrée
+input_layer = tf.keras.layers.Input(name="input_layer", shape=(None, None,3))
 
-# Save the input before the first block
-input_to_block = conv1
+# Première couche de convolution
+x = tf.keras.layers.Conv2D(kernel_size=(1,1), filters=128)(input_layer)
 
-# First convolutional block
-conv1 = tf.keras.layers.Conv2D(filters=128, kernel_size=(1, 1))(conv1)
-conv1 = tf.keras.layers.BatchNormalization()(conv1)
-conv1 = tf.keras.layers.Activation("relu")(conv1)
-conv1 = tf.keras.layers.Dropout(0.2)(conv1)
+input_to_block = x
 
-# Save input before the second block
-input_to_block_2 = conv1
-conv2 = conv1
-
-conv2 = tf.keras.layers.Conv2D(filters=32, kernel_size=(1, 1), padding='same')(conv2)
-# Second convolutional block
-for _ in range((7-1)//2):
-    conv2 = tf.keras.layers.Conv2D(filters=32, kernel_size=(3, 1), padding='same')(conv2)
-    conv2 = tf.keras.layers.Conv2D(filters=32, kernel_size=(1, 3), padding='same')(conv2)
-    conv2 = tf.keras.layers.BatchNormalization()(conv2)
-    conv2 = tf.keras.layers.Activation("relu")(conv2)
-    conv2 = tf.keras.layers.Dropout(0.2)(conv2)
+# Premier bloc de convolution
+x= tf.keras.layers.Conv2D(kernel_size=(1,1), filters=32 ,padding="same")(x)
+for _ in range ((7-1)//2):
+    x = tf.keras.layers.Conv2D(kernel_size=(1,3), filters=32 ,padding="same")(x)
+    x = tf.keras.layers.Conv2D(kernel_size=(3,1), filters=32 ,padding="same")(x)
+    x = tf.keras.layers.BatchNormalization()(x)
+    x = tf.keras.layers.Activation("relu")(x)
+    x = tf.keras.layers.Dropout(0.2)(x)
     
-conv2 = tf.keras.layers.Conv2D(filters=128, kernel_size=(1, 1))(conv2)
+x= tf.keras.layers.Conv2D(kernel_size=(1,1), filters=128 ,padding="same")(x)
+x += input_to_block
 
-# Add the residual from the first block
-conv2 = conv2 + input_to_block
+input_to_block = x
+x = tf.keras.layers.Conv2D(kernel_size=(1,1), filters=32 ,padding="same")(x)
 
-# Save input before the third block
-input_to_block_3 = conv2
-conv3 = conv2
-
-tf.keras.layers.Conv2D(filters=32, kernel_size=(1, 1), padding='same')(conv3)
-
-# Third convolutional block
-for _ in range((7-1)//2):
-    conv3 = tf.keras.layers.Conv2D(filters=32, kernel_size=(3, 1), padding='same')(conv3)
-    conv3 = tf.keras.layers.Conv2D(filters=32, kernel_size=(1, 3), padding='same')(conv3)
-    conv3 = tf.keras.layers.BatchNormalization()(conv3)
-    conv3 = tf.keras.layers.Activation("relu")(conv3)
-    conv3 = tf.keras.layers.Dropout(0.2)(conv3)
+for _ in range ((7-1)//2):
+    x = tf.keras.layers.Conv2D(kernel_size=(1,3), filters=32 ,padding="same")(x)
+    x = tf.keras.layers.Conv2D(kernel_size=(3,1), filters=32 ,padding="same")(x)
+    x = tf.keras.layers.BatchNormalization()(x)
+    x = tf.keras.layers.Activation("relu")(x)
+    x = tf.keras.layers.Dropout(0.2)(x)
     
-conv3 = tf.keras.layers.Conv2D(filters=128, kernel_size=(1, 1))(conv3)
+x= tf.keras.layers.Conv2D(kernel_size=(1,1), filters=128 ,padding="same")(x)
+x += input_to_block
 
-# Add the residual from the second block
-conv3 = conv3 + input_to_block_2
-conv4 = conv3
+input_to_block = x
+x = tf.keras.layers.Conv2D(kernel_size=(1,1), filters=32 ,padding="same")(x)
 
-conv4 = tf.keras.layers.Conv2D(filters=32, kernel_size=(1, 1), padding='same')(conv4)
-
-# Fourth convolutional block
-for _ in range((7-1)//2):
-    conv4 = tf.keras.layers.Conv2D(filters=32, kernel_size=(3, 1), padding='same')(conv4)
-    conv4 = tf.keras.layers.Conv2D(filters=32, kernel_size=(1, 3), padding='same')(conv4)
-    conv4 = tf.keras.layers.BatchNormalization()(conv4)
-    conv4 = tf.keras.layers.Activation("relu")(conv4)
-    conv4 = tf.keras.layers.Dropout(0.2)(conv4)
+for _ in range ((7-1)//2):
+    x = tf.keras.layers.Conv2D(kernel_size=(1,3), filters=32 ,padding="same")(x)
+    x = tf.keras.layers.Conv2D(kernel_size=(3,1), filters=32 ,padding="same")(x)
+    x = tf.keras.layers.BatchNormalization()(x)
+    x = tf.keras.layers.Activation("relu")(x)
+    x = tf.keras.layers.Dropout(0.2)(x)
     
-conv4 = tf.keras.layers.Conv2D(filters=128, kernel_size=(1, 1))(conv4)
+x= tf.keras.layers.Conv2D(kernel_size=(1,1), filters=128 ,padding="same")(x)
+x += input_to_block
 
-# Add the residual from the third block
-conv4 = conv4 + input_to_block_3
 
-# Additional convolutional and pooling layers
-conv5 = tf.keras.layers.Conv2D(filters=10, kernel_size=(1, 1))(conv4)
-global_avg_pool = tf.keras.layers.GlobalAveragePooling2D()(conv5)
-
-output_layer = tf.keras.layers.Activation("softmax", name="output_layer")(global_avg_pool)
+hidden_layer = tf.keras.layers.Conv2D(kernel_size=(1,1), filters=10, padding="same")(x)
+hidden_layer = tf.keras.layers.GlobalAveragePooling2D()(hidden_layer)
+output_layer = tf.keras.layers.Activation("softmax", name="output_layer")(hidden_layer)
 
 model = tf.keras.models.Model(inputs=[input_layer], outputs=[output_layer])
 
-model.summary(150)
-model.compile(optimizer="Adam", 
-              loss={"output_layer": tf.keras.losses.SparseCategoricalCrossentropy()},
-              metrics=["acc"])
+model.summary(100)
+model.compile(
+    optimizer = "Adam",
+    loss = {
+        "output_layer": tf.keras.losses.SparseCategoricalCrossentropy()
+    },
+    metrics = ["acc"],
+)
 
-model.fit(x_train, y_train,
-          validation_data=(x_test, y_test),
-          batch_size=32,
-          epochs=5)
+model.fit(
+    x_train,
+    y_train,
+    validation_data=(x_test, y_test),
+    batch_size = 32,
+    epochs = 5
+)

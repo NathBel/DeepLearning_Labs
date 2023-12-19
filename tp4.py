@@ -1,16 +1,6 @@
 import numpy as np
 import tensorflow as tf
 
-
-
-# 7 : --------------------------------------- Final Question ---------------------------------------
-# Je trouve ce code beaucoup plus lisible que le code du TP précédent. Il est plus facile de comprendre ce qui se passe dans le réseau.
-# Le code n'est pas dupliqué plusieurs fois et il est plus simple de lire les différents custom layer que de lire tous les layers à la suite.
-# De plus, le code est plus facilement modifiable et il est plus court.
-
-
-
-
 #Class pour créer un custom layer
 class SequentialySeparatedConv2D(tf.keras.layers.Layer):
     
